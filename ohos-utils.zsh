@@ -2,10 +2,11 @@
 
 #==========================================================================
 find-repo-root () {
-    path=$(pwd)
-    while [[ "$path" != "" && ! -e "$path/.repo" ]]; do
-       path=${path%/*}
+    currentPath=$(pwd)
+    while [[ "$currentPath" != "" && ! -e "$currentPath/.repo" ]]; do
+        currentPath=${currentPath%/*}
     done
+    echo "$currentPath"
 }
 
 function gen-build-path-env()
@@ -27,16 +28,15 @@ function ohos-conf()
 
     if [[ $OHOS_BUILD_TOP != $GUESS_OHOS_BUILD_TOP ]] || [ ! -d $OHOS_PRODUCT_OUT ]; then
         export OHOS_BUILD_TOP=$GUESS_OHOS_BUILD_TOP
-        export OHOS_PRODUCT_OUT=$(ls out -t |grep -P '^(?!preloader|kernel|sdk)'|head -n 1)
+        export OHOS_PRODUCT_OUT=$GUESS_OHOS_BUILD_TOP/out/$(ls out -t |grep -P '^(?!preloader|kernel|sdk)'|head -n 1)
     fi
 
     if ! ( echo $PATH | grep -q  "prebuilts/python/linux-x86" > /dev/null ); then
-        omz reload
         export PATH=$(gen-build-path-env):$PATH
     fi
-    if ! command -v hdc_std &> /dev/null then
+    if ! command -v hdc_std &> /dev/null; then
         if [ -f $OHOS_BUILD_TOP/out/sdk/ohos-sdk/linux/toolchains/hdc_std ]; then
-            export PATH=$OHOS_BUILD_TOP/out/sdk/ohos-sdk/linux/toolchains/hdc_std:$PATH
+            export PATH=$OHOS_BUILD_TOP/out/sdk/ohos-sdk/linux/toolchains/:$PATH
         else
             echo "hdc_std not found"
         fi
@@ -52,7 +52,6 @@ function ohos-croot()
     ohos-conf
     cd $OHOS_BUILD_TOP
 }
-
 
 # manaully regenerate build.ninja
 function ohos-gn()
