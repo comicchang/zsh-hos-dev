@@ -31,9 +31,6 @@ function ohos-conf()
         export OHOS_PRODUCT_OUT=$GUESS_OHOS_BUILD_TOP/out/$(ls out -t |grep -P '^(?!preloader|kernel|sdk)'|head -n 1)
     fi
 
-    if ! ( echo $PATH | grep -q  "prebuilts/python/linux-x86" > /dev/null ); then
-        export PATH=$(gen-build-path-env):$PATH
-    fi
     if ! command -v hdc_std &> /dev/null; then
         if [ -f $OHOS_BUILD_TOP/out/sdk/ohos-sdk/linux/toolchains/hdc_std ]; then
             export PATH=$OHOS_BUILD_TOP/out/sdk/ohos-sdk/linux/toolchains/:$PATH
@@ -57,7 +54,7 @@ function ohos-croot()
 function ohos-gn()
 {
     ohos-conf
-    gn --root=${OHOS_BUILD_TOP} -q gen ${OHOS_PRODUCT_OUT}/
+    PATH=$(gen-build-path-env):$PATH gn --root=${OHOS_BUILD_TOP} -q gen ${OHOS_PRODUCT_OUT}/
 }
 
 # build
@@ -74,7 +71,7 @@ function ohos-make()
         ${OHOS_PRODUCT_OUT}/build.ninja
 
     # build with ccache and pycache
-    USE_CCACHE="1" CCACHE_DIR="$HOME/CC_TMP" PYCACHE_DIR="$HOME/.pycache" PYCACHE_ENABLE="true" \
+    PATH=$(gen-build-path-env):$PATH USE_CCACHE="1" CCACHE_DIR="$HOME/CC_TMP" PYCACHE_DIR="$HOME/.pycache" PYCACHE_ENABLE="true" \
         ninja -d keepdepfile -d keeprsp -w dupbuild=err -C $OHOS_PRODUCT_OUT $@
 }
 
