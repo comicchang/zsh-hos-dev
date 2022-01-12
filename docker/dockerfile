@@ -1,0 +1,78 @@
+# Copyright (c) 2020 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM ubuntu:18.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG USERNAME=ooxx
+ARG UID=1000
+ARG GID=1000
+
+COPY sources.list /etc/apt
+
+RUN apt-get update && apt-get dist-upgrade -y && \
+    apt-get install -y \
+    vim \
+    software-properties-common \
+    iputils-ping \
+    curl \
+    net-tools \
+    bc \
+    rsync \
+    gawk \
+    ssh \
+    ccache \
+    zip \
+    unzip \
+    python3-yaml \
+    perl \
+    openssl \
+    libssl1.1 \
+    gnupg \
+    tcl \
+    flex \
+    bison \
+    git \
+    git-lfs \
+    pigz \
+    expect \
+    wget \
+    build-essential \
+    openjdk-8-jdk-headless \
+    ruby \
+    python3.8 \
+    python3-distutils \
+    cpio \
+    zsh \
+    sudo \
+    genext2fs \
+    liblz4-tool \
+    && apt-get clean \
+    && apt-get autoremove -y \
+    && ln -sf /usr/bin/python3.8 /usr/bin/python3 \
+    && ln -sf /usr/bin/python3.8 /usr/bin/python
+
+RUN curl -s https://gitee.com/oschina/repo/raw/fork_flow/repo-py3 > /usr/local/bin/repo ;\
+    chmod +x /usr/local/bin/repo ;\
+    echo " ===================================== " ;\
+    echo " you should manually install other deps into your home directory" ;\
+    echo " ===================================== "
+
+RUN groupadd -g $GID -o $USERNAME ;\
+    useradd -m -u $UID -g $GID -o -s /bin/zsh $USERNAME;\
+    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" | tee -a /etc/sudoers
+
+USER $USERNAME
+WORKDIR /home/$USERNAME
+CMD /bin/zsh

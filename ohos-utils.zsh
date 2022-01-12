@@ -75,6 +75,11 @@ function ohos-make()
         ninja -d keepdepfile -d keeprsp -w dupbuild=err -C $OHOS_PRODUCT_OUT $@
 }
 
+function ohos-exec-docker()
+{
+    docker run --rm -it -v $HOME:$HOME --workdir="$(pwd)" ooxx/hos-dev:0.0.1 $@
+}
+
 function ohos-push()
 {
     # todo
