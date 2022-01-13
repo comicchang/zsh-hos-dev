@@ -28,7 +28,7 @@ function ohos-conf()
 
     if [[ $OHOS_BUILD_TOP != $GUESS_OHOS_BUILD_TOP ]] || [ ! -d $OHOS_PRODUCT_OUT ]; then
         export OHOS_BUILD_TOP=$GUESS_OHOS_BUILD_TOP
-        export OHOS_PRODUCT_OUT=$GUESS_OHOS_BUILD_TOP/out/$(ls out -t |grep -P '^(?!preloader|kernel|sdk)'|head -n 1)
+        export OHOS_PRODUCT_OUT=$GUESS_OHOS_BUILD_TOP/out/$(ls $GUESS_OHOS_BUILD_TOP/out -t |grep -P '^(?!preloader|kernel|sdk)'|head -n 1)
     fi
 
     if ! command -v hdc_std &> /dev/null; then
@@ -82,8 +82,18 @@ function ohos-exec-docker()
 
 function ohos-push()
 {
+    ohos-conf
+
+    echo "===== pushing /system/lib ====="
+    hdc_std shell mount / -o remount,rw
+    cd $OHOS_PRODUCT_OUT/packages/phone/
+    find system/lib -type f -mmin -60 -print0 | xargs -0 -I{} hdc_std file send -a -sync {} /{}
+    hdc_std shell sync
+    hdc_std shell reboot
+
     # todo
     echo "===== done ====="
+    cd "$OLDPWD"
 }
 
 function ohos-apply()
@@ -93,11 +103,22 @@ function ohos-apply()
 }
 
 #==========================================================================
+function ohos-flash()
+{
+    ohos-conf
+
+    cd $OHOS_BUILD_TOP
+    python device/rockchip/common/tools/linux/flash.py -a
+    cd "$OLDPWD"
+}
+
+#==========================================================================
 
 function generate-clean-compiledb()
 {
     ohos-conf
-    ninja -C $OHOS_PRODUCT_OUT -t compdb | \
+    PATH=$(gen-build-path-env):$PATH \
+        ninja -C $OHOS_PRODUCT_OUT -t compdb | \
         jq --unbuffered 'del(.[] | select(.output|test("(_mingw|_android|_multi|_mac|_windows|Test\/)"))) | del(.[] | select(.output|test("(\\.o)$")|not))' | \
         > $OHOS_BUILD_TOP/compile_commands.json
 }
