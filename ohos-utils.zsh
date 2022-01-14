@@ -83,17 +83,34 @@ function ohos-exec-docker()
 function ohos-push()
 {
     ohos-conf
+    hdc_std shell mount / -o remount,rw
+    origDir=$(pwd)
 
     echo "===== pushing /system/lib ====="
-    hdc_std shell mount / -o remount,rw
-    cd $OHOS_PRODUCT_OUT/packages/phone/
-    find system/lib -type f -mmin -60 -print0 | xargs -0 -I{} hdc_std file send -a -sync {} /{}
+    lib_targets=()
+    for target in "$@"; do
+        case $target in
+            ace_engine_standard)
+                lib_targets+=($(find "$OHOS_PRODUCT_OUT"/ace/ace_engine_standard -name '*.so' -type f -mmin -60))
+                ;;
+            graphic_standard)
+                lib_targets+=($(find "$OHOS_PRODUCT_OUT"/graphic/graphic_standard -name '*.so' -type f -mmin -60))
+                ;;
+            image | *)
+                cd $OHOS_PRODUCT_OUT/packages/phone/
+                find system/lib -type f -mmin -60 -print0 | xargs -0 -I{} hdc_std file send -a -sync {} /{}
+                ;;
+        esac
+    done
+
+    for target_name in "${lib_targets[@]}"; do
+        hdc_std file send $target_name /system/lib
+    done
+
+    echo "===== done ====="
     hdc_std shell sync
     hdc_std shell reboot
-
-    # todo
-    echo "===== done ====="
-    cd "$OLDPWD"
+    cd "$origDir"
 }
 
 function ohos-apply()
