@@ -38,6 +38,7 @@ RUN apt-get update && apt-get dist-upgrade -y && \
     python3-yaml \
     perl \
     openssl \
+    libssl-dev \
     libssl1.1 \
     gnupg \
     tcl \

@@ -77,7 +77,7 @@ function ohos-make()
 
 function ohos-exec-docker()
 {
-    docker run --rm -it -v $HOME:$HOME --workdir="$(pwd)" ooxx/hos-dev:0.0.1 $@
+    docker run --rm -it -v $HOME:$HOME --workdir="$(pwd)" ooxx/hos-dev:0.0.2 $@
 }
 
 function ohos-push()
