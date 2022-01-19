@@ -83,11 +83,10 @@ function ohos-exec-docker()
 function ohos-push()
 {
     ohos-conf
-    hdc_std shell mount / -o remount,rw
     origDir=$(pwd)
 
-    echo "===== pushing /system/lib ====="
     lib_targets=()
+    exe_targets=()
     for target in "$@"; do
         case $target in
             ace_engine_standard)
@@ -95,21 +94,40 @@ function ohos-push()
                 ;;
             graphic_standard)
                 lib_targets+=($(find "$OHOS_PRODUCT_OUT"/graphic/graphic_standard -name '*.so' -type f -mmin -60))
+                exe_targets+=($(find "$OHOS_PRODUCT_OUT"/graphic/graphic_standard ! -name '*.*' -type f -mmin -60))
                 ;;
-            image | *)
+            *demo)
+                exe_targets+=($(find "$OHOS_PRODUCT_OUT"/ -name "$target" -type f -mmin -60|tail -n 1))
+                ;;
+            images | *)
                 cd $OHOS_PRODUCT_OUT/packages/phone/
                 find system/lib -type f -mmin -60 -print0 | xargs -0 -I{} hdc_std file send -a -sync {} /{}
                 ;;
         esac
     done
 
-    for target_name in "${lib_targets[@]}"; do
-        hdc_std file send $target_name /system/lib
-    done
+    hdc_std shell mount / -o remount,rw
+
+    if (( ${#lib_targets[@]} )); then
+        echo "===== pushing /system/lib ====="
+        for target_name in "${lib_targets[@]}"; do
+            hdc_std file send $target_name /system/lib
+        done
+    fi
+
+    if (( ${#exe_targets[@]} )); then
+        echo "===== pushing /system/bin ====="
+        for target_name in "${exe_targets[@]}"; do
+            hdc_std file send $target_name /system/bin
+            hdc_std shell chmod +x /system/bin/$(basename $target_name)
+        done
+    fi
 
     echo "===== done ====="
     hdc_std shell sync
-    hdc_std shell reboot
+    if (( ${#lib_targets[@]} )); then
+        hdc_std shell reboot
+    fi
     cd "$origDir"
 }
 
