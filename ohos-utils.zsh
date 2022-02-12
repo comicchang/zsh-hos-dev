@@ -96,6 +96,9 @@ function ohos-push()
                 lib_targets+=($(find "$OHOS_PRODUCT_OUT"/graphic/graphic_standard -name '*.so' -type f -mmin -60))
                 exe_targets+=($(find "$OHOS_PRODUCT_OUT"/graphic/graphic_standard ! -name '*.*' -type f -mmin -60))
                 ;;
+            window_manager)
+                lib_targets+=($(find "$OHOS_PRODUCT_OUT"/window/window_manager -name '*.so' -type f -mmin -60))
+                ;;
             *demo)
                 exe_targets+=($(find "$OHOS_PRODUCT_OUT"/ -name "$target" -type f -mmin -60|tail -n 1))
                 ;;
