@@ -77,7 +77,9 @@ function ohos-make()
 
 function ohos-exec-docker()
 {
+    cd $OHOS_BUILD_TOP
     docker run --rm -it -v $HOME:$HOME --workdir="$(pwd)" ooxx/hos-dev:0.0.2 $@
+    cd "$OLDPWD"
 }
 
 function ohos-push()
@@ -103,8 +105,8 @@ function ohos-push()
                 exe_targets+=($(find "$OHOS_PRODUCT_OUT"/ -name "$target" -type f -mmin -60|tail -n 1))
                 ;;
             images | *)
-                cd $OHOS_PRODUCT_OUT/packages/phone/
-                find system/lib -type f -mmin -60 -print0 | xargs -0 -I{} hdc_std file send -a -sync {} /{}
+                ohos-flash
+                return
                 ;;
         esac
     done
@@ -155,8 +157,14 @@ function ohos-flash()
 function generate-clean-compiledb()
 {
     ohos-conf
+
     PATH=$(gen-build-path-env):$PATH \
         ninja -C $OHOS_PRODUCT_OUT -t compdb | \
         jq --unbuffered 'del(.[] | select(.output|test("(_mingw|_android|_multi|_mac|_windows|Test\/)"))) | del(.[] | select(.output|test("(\\.o)$")|not))' | \
         > $OHOS_BUILD_TOP/compile_commands.json
+}
+
+function update-copyright()
+{
+    git status -s|cut -d' ' -f3|xargs sed -i 's/2021 Huawei/2021-2022 Huawei/g'
 }
