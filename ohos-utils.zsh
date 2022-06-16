@@ -149,7 +149,7 @@ function ohos-flash()
     ohos-conf
 
     cd $OHOS_BUILD_TOP
-    python device/rockchip/common/tools/linux/flash.py -a
+    python ~/src/docs/HiHope_DAYU200/烧写工具及指南/linux/flash.py -a -i ${OHOS_PRODUCT_OUT}/packages/phone/images
     cd "$OLDPWD"
 }
 
