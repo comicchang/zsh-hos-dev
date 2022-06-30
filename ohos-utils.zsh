@@ -80,7 +80,9 @@ function ohos-exec-docker()
     ohos-conf
     cd $OHOS_BUILD_TOP
     docker run --rm -it -v $HOME:$HOME --workdir="$(pwd)" ooxx/hos-dev:0.0.2 $@
+    errCode=$?
     cd "$OLDPWD"
+    return $errCode
 }
 
 function ohos-push()
