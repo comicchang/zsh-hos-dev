@@ -15,6 +15,12 @@ function gen-build-path-env()
     echo "${OHOS_BUILD_TOP}/prebuilts/python/linux-x86/3.8.5/bin:${OHOS_BUILD_TOP}/prebuilts/build-tools/linux-x86/bin"
 }
 
+function ohos-exec()
+{
+    ohos-conf
+    PATH=$(gen-build-path-env):$PATH $@
+}
+
 #==========================================================================
 
 #prepare build environment
@@ -53,8 +59,7 @@ function ohos-croot()
 # manaully regenerate build.ninja
 function ohos-gn()
 {
-    ohos-conf
-    PATH=$(gen-build-path-env):$PATH gn --root=${OHOS_BUILD_TOP} -q gen ${OHOS_PRODUCT_OUT}/
+    ohos-exec gn --root=${OHOS_BUILD_TOP} -q gen ${OHOS_PRODUCT_OUT}/
 }
 
 # build
@@ -71,7 +76,7 @@ function ohos-make()
         ${OHOS_PRODUCT_OUT}/build.ninja
 
     # build with ccache and pycache
-    PATH=$(gen-build-path-env):$PATH USE_CCACHE="1" CCACHE_DIR="$HOME/CC_TMP" PYCACHE_DIR="$HOME/.pycache" PYCACHE_ENABLE="true" \
+    ohos-exec USE_CCACHE="1" CCACHE_DIR="$HOME/CC_TMP" PYCACHE_DIR="$HOME/.pycache" PYCACHE_ENABLE="true" \
         ninja -d keepdepfile -d keeprsp -w dupbuild=err -C $OHOS_PRODUCT_OUT $@
 }
 
@@ -161,7 +166,7 @@ function generate-clean-compiledb()
 {
     ohos-conf
 
-    PATH=$(gen-build-path-env):$PATH \
+    ohos-exec \
         ninja -C $OHOS_PRODUCT_OUT -t compdb | \
         jq --unbuffered 'del(.[] | select(.output|test("(_mingw|_android|_multi|_mac|_windows|Test\/)"))) | del(.[] | select(.output|test("(\\.o)$")|not))' | \
         > $OHOS_BUILD_TOP/compile_commands.json
